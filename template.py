@@ -444,7 +444,12 @@ class LLMJudge:
                 for criterion in rubric:
                     if criterion in candidate_scores:
                         val = candidate_scores[criterion]
-                        scores[criterion] = float(val) if isinstance(val, (int, float)) else 0.5
+                        if isinstance(val, (int, float)) and not isinstance(val, bool):
+                            # Keep malformed judge output from escaping the
+                            # documented normalized [0, 1] score range.
+                            scores[criterion] = min(1.0, max(0.0, float(val)))
+                        else:
+                            scores[criterion] = 0.5
                     else:
                         scores[criterion] = 0.5
             else:
